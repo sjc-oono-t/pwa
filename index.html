@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="manifest.json">
+    <!-- <title>Tetris_app</title> -->
+  </head>
+  <body>
+    <div>index</div>
+    <a href="hoge/index.html">hoge/index</a>
+
+    <!-- カメラ -->
+    <!-- <button>take a snapshot</button>
+    <video id="camera"></video> -->
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }).catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      }
+
+      // カメラ部分-------------------------------------------------------
+      // const vid = document.getElementById('camera');
+      // navigator.mediaDevices.getUserMedia({
+      //   audio: false,
+      //   video: true
+      //   // video: { facingMode: { exact: "environment" } }
+      // }).then(stream => {
+      //   vid.srcObject = stream;
+      //   vid.play();
+      // })
+      // .then(()=>{ // enable the button
+      //   const btn = document.querySelector('button');
+      //   btn.disabled = false;
+      //   btn.onclick = e => {
+      //     takeASnap()
+      //     .then(download);
+      //   };
+      // })
+      // .catch(e=>console.log('please use the fiddle instead'));
+
+      // function takeASnap(){
+      //   const canvas = document.createElement('canvas'); // create a canvas
+      //   const ctx = canvas.getContext('2d'); // get its context
+      //   canvas.width = vid.videoWidth; // set its size to the one of the video
+      //   canvas.height = vid.videoHeight;
+      //   ctx.drawImage(vid, 0,0); // the video
+      //   return new Promise((res, rej)=>{
+      //     canvas.toBlob(res, 'image/jpeg'); // request a Blob from the canvas
+      //   });
+      // }
+      // function download(blob){
+      //   // uses the <a download> to download a Blob
+      //   let a = document.createElement('a');
+      //   a.href = URL.createObjectURL(blob);
+      //   a.download = 'screenshot.jpg';
+      //   document.body.appendChild(a);
+      //   a.click();
+      // }
+      // カメラ部分-------------------------------------------------------
+
+      // manifestのlinkタグを生成
+      // function setManifest(path) {
+      //   const manifest = document.createElement('link');
+      //   manifest.rel = 'manifest';
+      //   manifest.href = path;
+      //   document.head.appendChild(manifest);
+      // }
+
+      // // OSに応じて読み込むmanifestを変更
+      // var userAgent = navigator.userAgent.toLowerCase();
+      // if (userAgent.indexOf("iphone") > 0 || userAgent.indexOf("ipad") > 0) {
+      //   setManifest('manifest_ios.json')
+      // } else {
+      //   setManifest('manifest.json')
+      // }
+    </script>
+   </body>
+</html>
