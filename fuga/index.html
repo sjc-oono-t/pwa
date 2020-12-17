@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="../manifest.json">
+    <script type="text/javascript" src="../common.js"></script>
+  </head>
+  <body>
+    <h1>fuga/index</h1>
+    <div>fuga/index</div>
+    <div><a href="../hoge/index.html">hoge/index</a></div>
+    <div><a href="../index.html">index</a></div>
+
+    <img id="animal" style="display:none">
+
+    <script>
+    window.onload = async ()=>{
+      var openRequest = indexedDB.open('imageDB');
+
+      openRequest.onsuccess = function(event){
+        var db = event.target.result;
+        var trans = db.transaction('Images', 'readonly');
+        var store = trans.objectStore('Images');
+        // key を直接指定しているので要注意
+        var getRequest = store.get(1);
+
+        getRequest.onsuccess = async (event)=>{
+          // IndexedDBから取り出す
+          const buff = await event.target.result.data;
+          // // blobをObjectURLへ変換
+          const objecturl = URL.createObjectURL(buff);
+          // // imgタグに差し込む
+          const animal = document.querySelector("#animal");
+          animal.setAttribute("src", objecturl);
+          animal.style.display = "block";
+        };
+
+        // var reqGet = store.openCursor();
+        // reqGet.onsuccess = async (event)=>{
+        //   // var cursor = reqGet.result;
+        //   // var key = cursor.key;
+        //   // var value = cursor.value;
+        //   // cursor.continue();
+        //   // IndexedDBから取り出す
+        //   const buff = await reqGet.result.data;
+        //   debugger;
+        //   // // blobをObjectURLへ変換
+        //   const objecturl = URL.createObjectURL(buff);
+        //   // // imgタグに差し込む
+        //   const animal = document.querySelector("#animal");
+        //   animal.setAttribute("src", objecturl);
+        //   animal.style.display = "block";
+        // }
+      };
+    }
+    </script>
+   </body>
+</html>

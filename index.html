@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="manifest" href="manifest.json">
-    <!-- <title>Tetris_app</title> -->
+
+    <!-- <script type="text/javascript" src="common.js"></script> -->
   </head>
   <body>
     <div>index</div>
-    <a href="hoge/index.html">hoge/index</a>
+    <div><a href="hoge/index.html">hoge/index</a></div>
+    version043
+    <!-- <div><a href="hoge/no_cache.html">hoge/no_cache</a></div> -->
 
     <!-- カメラ -->
     <!-- <button>take a snapshot</button>
@@ -17,11 +20,89 @@
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(function(registration) {
+          let hoge = localStorage.getItem("current_page")
+          localStorage.removeItem("current_page");
+          if (hoge) {
+            // window.location.href = hoge;
+          }
+          registration.onupdatefound = function() {
+            console.log("アップデーと");
+          //   registration.update();
+          }
           console.log('ServiceWorker registration successful with scope: ', registration.scope);
         }).catch(function(err) {
           console.log('ServiceWorker registration failed: ', err);
         });
       }
+
+      //DBの名前を定義する。好きな名前をつけてください。
+      const demoDbName = 'demoIndexedDB';
+
+      //バージョン この数値が以前の数値より高ければ、更新用のメソッドが動く。
+      //現在の日付にしておけば管理しやすいと思います。
+      const version = 201903021636;
+
+      //DBのオープン（DB名とバージョンを渡す）
+      const openReq  = indexedDB.open(demoDbName,version);
+
+      //objectStoreNames
+      const fruitsStoreName = 'Fruits';
+
+      //DBバージョンアップ
+      openReq.onupgradeneeded = (event) => {
+          //DBの定義
+          const openedDB = event.target.result;
+
+          if(openedDB.objectStoreNames.contains(fruitsStoreName) === false){
+              //Fruitsというオブジェクトストアがなければ作る
+
+              //createObjectStore()の第一引数にストアの名前、第二引数に設定のオブジェクト
+              //この場合”id”を各データのkeyにして、データ登録時に自動で連番になるように設定
+              openedDB.createObjectStore( fruitsStoreName , {keyPath : 'id',autoIncrement: true});
+          }
+      }
+
+      openReq.onsuccess = (event) => {
+          //onupgradeneededの後に実行。更新がない場合はこれだけ実行
+          console.log('db open success');
+
+          const openedDB = event.target.result;
+
+          //ここから追加
+
+          //試しに挿入するデータ
+          const fruitData = {name:'banana',price:150};
+
+          //transaction
+          const trans = openedDB.transaction(fruitsStoreName, 'readwrite');
+          //store
+          const store = trans.objectStore(fruitsStoreName);
+          //挿入、編集のリクエストをする（addにすれば挿入のみ）
+          const putReq = store.put(fruitData);
+
+          //データの挿入成功時に実行
+          putReq.onsuccess = (event) => {
+              console.log(event.target.result);
+          }
+
+          //putReq.onsuccessの後に実行
+          trans.oncomplete = () => {
+              console.log('transaction完了');
+          }
+
+          //ここまで追加
+
+          // 接続を解除する
+          openedDB.close();
+      }
+
+      // navigator.serviceWorker.getRegistrations()
+      // .then(registrations => {
+      //   for(let registration of registrations) {
+      //     registration.unregister();
+      //   }
+      // });
+      // window.location.reload(true);
 
       // カメラ部分-------------------------------------------------------
       // const vid = document.getElementById('camera');

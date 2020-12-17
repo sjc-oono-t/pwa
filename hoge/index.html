@@ -4,18 +4,88 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="manifest" href="../manifest.json">
-    <!-- <title>Tetris_app</title> -->
+    <script type="text/javascript" src="../common.js"></script>
   </head>
   <body>
-    <div>hoge/index</div>
+    <h1>hoge/index</h1>
+    <div>画像登録してる画面</div>
+    <div><a href="../fuga/index.html">fuga/index</a></div>
+    <div><a href="../index.html">index</a></div>
+
+    <input id="fileCount" type="number" name="file_count">
+    <input id="submitButton" type="button" value="← 画像数入力して登録">
+
     <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('../sw.js').then(function(registration) {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }).catch(function(err) {
-          console.log('ServiceWorker registration failed: ', err);
-        });
+      const imageDbName = 'imageDB';
+
+      //バージョン この数値が以前の数値より高ければ、更新用のメソッドが動く。
+      //現在の日付にしておけば管理しやすいと思います。
+      const version = 201903021636;
+
+      async function addImage() {
+        // const res  = await fetch("/images/animal_chara_bad1_usagi.png");
+        const res  = await fetch("/pwa/images/animal_chara_bad1_usagi.png");
+        const blob = await res.blob();
+
+        //DBのオープン（DB名とバージョンを渡す）
+        const openReq  = indexedDB.open(imageDbName,version);
+
+        //objectStoreNames
+        const imageStoreName = 'Images';
+
+        //DBバージョンアップ
+        openReq.onupgradeneeded = (event) => {
+            //DBの定義
+            const openedDB = event.target.result;
+
+            if(openedDB.objectStoreNames.contains(imageStoreName) === false){
+                //Imagesというオブジェクトストアがなければ作る
+
+                //createObjectStore()の第一引数にストアの名前、第二引数に設定のオブジェクト
+                //この場合”id”を各データのkeyにして、データ登録時に自動で連番になるように設定
+                openedDB.createObjectStore( imageStoreName , {keyPath : 'id',autoIncrement: true});
+            }
+        }
+
+        openReq.onsuccess = (event) => {
+            //onupgradeneededの後に実行。更新がない場合はこれだけ実行
+            console.log('db open success');
+
+            const openedDB = event.target.result;
+
+            //試しに挿入するデータ
+            const fruitData = { name:"animal.jpg", data:blob };
+
+            //transaction
+            const trans = openedDB.transaction(imageStoreName, 'readwrite');
+            //store
+            const store = trans.objectStore(imageStoreName);
+            //挿入、編集のリクエストをする（addにすれば挿入のみ）
+            const putReq = store.put(fruitData);
+
+            // //データの挿入成功時に実行
+            // putReq.onsuccess = (event) => {
+            //     console.log(event.target.result);
+            // }
+
+            // //putReq.onsuccessの後に実行
+            // trans.oncomplete = () => {
+            //     console.log('transaction完了');
+            // }
+
+            // 接続を解除する
+            openedDB.close();
+        }
       }
-     </script>
+
+      document.getElementById("submitButton").onclick = function() {
+      // document.getElementById("submitButton").onclick =
+        let fileCount = Number(document.getElementById("fileCount").value);
+
+        for (let i = 0; i < fileCount; i++) {
+          addImage();
+        }
+      };
+    </script>
    </body>
 </html>
