@@ -12,46 +12,51 @@
     <div><a href="../hoge/index.html">hoge/index</a></div>
     <div><a href="../index.html">index</a></div>
 
-    <img id="animal" style="display:none">
+    <!-- <img id="animal" style="display:none"> -->
+    <div id="images"></div>
 
     <script>
     window.onload = async ()=>{
-      var openRequest = indexedDB.open('imageDB');
+      var openRequest = indexedDB.open('cameraDB');
 
       openRequest.onsuccess = function(event){
         var db = event.target.result;
-        var trans = db.transaction('Images', 'readonly');
-        var store = trans.objectStore('Images');
-        // key を直接指定しているので要注意
-        var getRequest = store.get(1);
+        var trans = db.transaction('photos', 'readonly');
+        var store = trans.objectStore('photos');
+        // // key を直接指定しているので要注意
+        // var getRequest = store.get(1);
 
-        getRequest.onsuccess = async (event)=>{
-          // IndexedDBから取り出す
-          const buff = await event.target.result.data;
-          // // blobをObjectURLへ変換
-          const objecturl = URL.createObjectURL(buff);
-          // // imgタグに差し込む
-          const animal = document.querySelector("#animal");
-          animal.setAttribute("src", objecturl);
-          animal.style.display = "block";
-        };
-
-        // var reqGet = store.openCursor();
-        // reqGet.onsuccess = async (event)=>{
-        //   // var cursor = reqGet.result;
-        //   // var key = cursor.key;
-        //   // var value = cursor.value;
-        //   // cursor.continue();
+        // getRequest.onsuccess = async (event)=>{
         //   // IndexedDBから取り出す
-        //   const buff = await reqGet.result.data;
-        //   debugger;
+        //   const buff = await event.target.result.data;
         //   // // blobをObjectURLへ変換
         //   const objecturl = URL.createObjectURL(buff);
         //   // // imgタグに差し込む
         //   const animal = document.querySelector("#animal");
         //   animal.setAttribute("src", objecturl);
         //   animal.style.display = "block";
-        // }
+        // };
+
+        var reqGet = store.openCursor();
+        reqGet.onsuccess = async (event)=>{
+          // var cursor = reqGet.result;
+          // var key = cursor.key;
+          // var value = cursor.value;
+          // cursor.continue();
+          // const result = await
+          if (reqGet.result) {
+            const buff = await reqGet.result.value.data;
+            // blobをObjectURLへ変換
+            const objecturl = URL.createObjectURL(buff);
+            // imgタグに差し込む
+            const imageDiv = document.createElement('img');
+            // const animal = document.querySelector("#animal");
+            imageDiv.setAttribute("src", objecturl);
+            imageDiv.style.display = "block";
+            document.getElementById('images').appendChild(imageDiv);
+            reqGet.result.continue();
+          }
+        }
       };
     }
     </script>

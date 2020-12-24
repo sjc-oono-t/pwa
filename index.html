@@ -14,8 +14,8 @@
     <!-- <div><a href="hoge/no_cache.html">hoge/no_cache</a></div> -->
 
     <!-- カメラ -->
-    <!-- <button>take a snapshot</button>
-    <video id="camera"></video> -->
+    <button>take a snapshot</button>
+    <video id="camera" autoplay playsinline></video>
 
     <script>
       if ('serviceWorker' in navigator) {
@@ -35,66 +35,66 @@
         });
       }
 
-      //DBの名前を定義する。好きな名前をつけてください。
-      const demoDbName = 'demoIndexedDB';
+      // //DBの名前を定義する。好きな名前をつけてください。
+      // const demoDbName = 'demoIndexedDB';
 
-      //バージョン この数値が以前の数値より高ければ、更新用のメソッドが動く。
-      //現在の日付にしておけば管理しやすいと思います。
-      const version = 201903021636;
+      // //バージョン この数値が以前の数値より高ければ、更新用のメソッドが動く。
+      // //現在の日付にしておけば管理しやすいと思います。
+      // const version = 201903021636;
 
-      //DBのオープン（DB名とバージョンを渡す）
-      const openReq  = indexedDB.open(demoDbName,version);
+      // //DBのオープン（DB名とバージョンを渡す）
+      // const openReq  = indexedDB.open(demoDbName,version);
 
-      //objectStoreNames
-      const fruitsStoreName = 'Fruits';
+      // //objectStoreNames
+      // const fruitsStoreName = 'Fruits';
 
-      //DBバージョンアップ
-      openReq.onupgradeneeded = (event) => {
-          //DBの定義
-          const openedDB = event.target.result;
+      // //DBバージョンアップ
+      // openReq.onupgradeneeded = (event) => {
+      //     //DBの定義
+      //     const openedDB = event.target.result;
 
-          if(openedDB.objectStoreNames.contains(fruitsStoreName) === false){
-              //Fruitsというオブジェクトストアがなければ作る
+      //     if(openedDB.objectStoreNames.contains(fruitsStoreName) === false){
+      //         //Fruitsというオブジェクトストアがなければ作る
 
-              //createObjectStore()の第一引数にストアの名前、第二引数に設定のオブジェクト
-              //この場合”id”を各データのkeyにして、データ登録時に自動で連番になるように設定
-              openedDB.createObjectStore( fruitsStoreName , {keyPath : 'id',autoIncrement: true});
-          }
-      }
+      //         //createObjectStore()の第一引数にストアの名前、第二引数に設定のオブジェクト
+      //         //この場合”id”を各データのkeyにして、データ登録時に自動で連番になるように設定
+      //         openedDB.createObjectStore( fruitsStoreName , {keyPath : 'id',autoIncrement: true});
+      //     }
+      // }
 
-      openReq.onsuccess = (event) => {
-          //onupgradeneededの後に実行。更新がない場合はこれだけ実行
-          console.log('db open success');
+      // openReq.onsuccess = (event) => {
+      //     //onupgradeneededの後に実行。更新がない場合はこれだけ実行
+      //     console.log('db open success');
 
-          const openedDB = event.target.result;
+      //     const openedDB = event.target.result;
 
-          //ここから追加
+      //     //ここから追加
 
-          //試しに挿入するデータ
-          const fruitData = {name:'banana',price:150};
+      //     //試しに挿入するデータ
+      //     const fruitData = {name:'banana',price:150};
 
-          //transaction
-          const trans = openedDB.transaction(fruitsStoreName, 'readwrite');
-          //store
-          const store = trans.objectStore(fruitsStoreName);
-          //挿入、編集のリクエストをする（addにすれば挿入のみ）
-          const putReq = store.put(fruitData);
+      //     //transaction
+      //     const trans = openedDB.transaction(fruitsStoreName, 'readwrite');
+      //     //store
+      //     const store = trans.objectStore(fruitsStoreName);
+      //     //挿入、編集のリクエストをする（addにすれば挿入のみ）
+      //     const putReq = store.put(fruitData);
 
-          //データの挿入成功時に実行
-          putReq.onsuccess = (event) => {
-              console.log(event.target.result);
-          }
+      //     //データの挿入成功時に実行
+      //     putReq.onsuccess = (event) => {
+      //         console.log(event.target.result);
+      //     }
 
-          //putReq.onsuccessの後に実行
-          trans.oncomplete = () => {
-              console.log('transaction完了');
-          }
+      //     //putReq.onsuccessの後に実行
+      //     trans.oncomplete = () => {
+      //         console.log('transaction完了');
+      //     }
 
-          //ここまで追加
+      //     //ここまで追加
 
-          // 接続を解除する
-          openedDB.close();
-      }
+      //     // 接続を解除する
+      //     openedDB.close();
+      // }
 
       // navigator.serviceWorker.getRegistrations()
       // .then(registrations => {
@@ -105,7 +105,100 @@
       // window.location.reload(true);
 
       // カメラ部分-------------------------------------------------------
-      // const vid = document.getElementById('camera');
+
+      const cameraDbName = 'cameraDB';
+      const version = 201903021636;
+      async function addImage(blob) {
+        // const res  = await fetch("/images/animal_chara_bad1_usagi.png");
+        // const res  = await fetch("/pwa/images/animal_chara_bad1_usagi.png");
+        // const blob = await res.blob();
+
+        //DBのオープン（DB名とバージョンを渡す）
+        const openReq  = indexedDB.open(cameraDbName,version);
+
+        //objectStoreNames
+        const photosStoreName = 'photos';
+
+        //DBバージョンアップ
+        openReq.onupgradeneeded = (event) => {
+            //DBの定義
+            const openedDB = event.target.result;
+
+            if(openedDB.objectStoreNames.contains(photosStoreName) === false){
+                //photosというオブジェクトストアがなければ作る
+
+                //createObjectStore()の第一引数にストアの名前、第二引数に設定のオブジェクト
+                //この場合”id”を各データのkeyにして、データ登録時に自動で連番になるように設定
+                openedDB.createObjectStore( photosStoreName , {keyPath : 'id',autoIncrement: true});
+            }
+        }
+
+        openReq.onsuccess = (event) => {
+            //onupgradeneededの後に実行。更新がない場合はこれだけ実行
+            console.log('db open success');
+
+            const openedDB = event.target.result;
+
+            //試しに挿入するデータ
+            const fruitData = { name:"animal.jpg", data:blob };
+
+            //transaction
+            const trans = openedDB.transaction(photosStoreName, 'readwrite');
+            //store
+            const store = trans.objectStore(photosStoreName);
+            //挿入、編集のリクエストをする（addにすれば挿入のみ）
+            const putReq = store.put(fruitData);
+
+            // //データの挿入成功時に実行
+            // putReq.onsuccess = (event) => {
+            //     console.log(event.target.result);
+            // }
+
+            // //putReq.onsuccessの後に実行
+            // trans.oncomplete = () => {
+            //     console.log('transaction完了');
+            // }
+
+            // 接続を解除する
+            openedDB.close();
+        }
+      }
+
+      const vid = document.getElementById('camera');
+      const promise = navigator.mediaDevices.getUserMedia({
+        audio : false,
+        video : {
+          width: 300,
+          height: 200,
+          facingMode : {
+            exact : "environment"
+          }
+        }
+      });
+
+      // promise.then(successCallback)
+      //        .then(errorCallback);
+      promise.then(stream => {
+        vid.srcObject = stream;
+        vid.play();
+      })
+      .then(()=>{ // enable the button
+        const btn = document.querySelector('button');
+        btn.disabled = false;
+        btn.onclick = e => {
+          takeASnap()
+          .then(download);
+        };
+      })
+      .catch(e=>console.log('please use the fiddle instead'));
+
+      function successCallback(stream) {
+        vid.srcObject = stream;
+      };
+
+      function errorCallback(err) {
+        alert(err);
+      };
       // navigator.mediaDevices.getUserMedia({
       //   audio: false,
       //   video: true
@@ -124,24 +217,25 @@
       // })
       // .catch(e=>console.log('please use the fiddle instead'));
 
-      // function takeASnap(){
-      //   const canvas = document.createElement('canvas'); // create a canvas
-      //   const ctx = canvas.getContext('2d'); // get its context
-      //   canvas.width = vid.videoWidth; // set its size to the one of the video
-      //   canvas.height = vid.videoHeight;
-      //   ctx.drawImage(vid, 0,0); // the video
-      //   return new Promise((res, rej)=>{
-      //     canvas.toBlob(res, 'image/jpeg'); // request a Blob from the canvas
-      //   });
-      // }
-      // function download(blob){
-      //   // uses the <a download> to download a Blob
-      //   let a = document.createElement('a');
-      //   a.href = URL.createObjectURL(blob);
-      //   a.download = 'screenshot.jpg';
-      //   document.body.appendChild(a);
-      //   a.click();
-      // }
+      function takeASnap(){
+        const canvas = document.createElement('canvas'); // create a canvas
+        const ctx = canvas.getContext('2d'); // get its context
+        canvas.width = vid.videoWidth; // set its size to the one of the video
+        canvas.height = vid.videoHeight;
+        ctx.drawImage(vid, 0,0); // the video
+        return new Promise((res, rej)=>{
+          canvas.toBlob(res, 'image/jpeg'); // request a Blob from the canvas
+        });
+      }
+      function download(blob){
+        addImage(blob)
+        // // uses the <a download> to download a Blob
+        // let a = document.createElement('a');
+        // a.href = URL.createObjectURL(blob);
+        // a.download = 'screenshot.jpg';
+        // document.body.appendChild(a);
+        // a.click();
+      }
       // カメラ部分-------------------------------------------------------
 
       // manifestのlinkタグを生成
