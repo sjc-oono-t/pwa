@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="../manifest.json">
+    <script type="text/javascript" src="../common.js"></script>
+    <script type="text/javascript" src="../unzip.min.js"></script>
+  </head>
+  <body>
+    <h1>ZIP解凍→indexedDBに保存するページ</h1>
+    <div><a href="../index.html">index.html</a></div>
+
+    <button type="button" id="zipBtn">zip確認</button>
+    <div id="images"></div>
+
+    <script>
+      document.getElementById("zipBtn").onclick = function() {
+        const dbName = 'sampleDB';
+        const dbVersion = '202001070001'
+        const storeName  = 'sampleStore';
+        const url = '/pwa/resize.zip'
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function (e) {
+          let unzip = new Zlib.Unzip(new Uint8Array(this.response))
+          var filenames = unzip.getFilenames();
+
+          //　DB名を指定して接続。DBがなければ新規作成される。
+          // オブジェクトストアの作成・削除はDBの更新時しかできないので、バージョンを指定して更新
+          var openReq = indexedDB.open(dbName, dbVersion);
+
+          openReq.onupgradeneeded = function(event){
+            var db = event.target.result;
+            // createObjectStore()の第一引数にストアの名前、第二引数に設定のオブジェクト
+            // この場合”id”を各データのkeyにして、データ登録時に自動で連番になるように設定
+            db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true })
+          }
+
+          // onupgradeneeded の後に実行。更新がない場合はこれだけ実行
+          openReq.onsuccess = function(event) {
+            var db = event.target.result;
+            var trans = db.transaction(storeName, 'readwrite');
+            var store = trans.objectStore(storeName);
+
+            for (let i = 0; i < filenames.length; i++) {
+              var buffer = unzip.decompress(filenames[i])
+              var fileBlob = new Blob([buffer], { type: 'application/octet-stream' });
+              var putReq = store.put({ image: fileBlob });
+            }
+
+            // データ挿入成功時に実行
+            putReq.onsuccess = function() {
+              console.log('put data success');
+            }
+
+            // トランザクション完了時(putReq.onsuccessの後)に実行
+            trans.oncomplete = function(){
+              console.log('transaction complete');
+            }
+
+            db.close();
+          }
+        };
+        xhr.send();
+      };
+
+      window.onload = async ()=>{
+        var openRequest = indexedDB.open('sampleDB', '202001070001');
+
+        openRequest.onupgradeneeded = function(event){
+          var db = event.target.result;
+          // createObjectStore()の第一引数にストアの名前、第二引数に設定のオブジェクト
+          // この場合”id”を各データのkeyにして、データ登録時に自動で連番になるように設定
+          db.createObjectStore('sampleStore', { keyPath: 'id', autoIncrement: true })
+        }
+
+        openRequest.onsuccess = function(event){
+          var db = event.target.result;
+          var trans = db.transaction('sampleStore', 'readonly');
+          var store = trans.objectStore('sampleStore');
+          var reqGet = store.openCursor();
+          reqGet.onsuccess = async (event)=>{
+            if (reqGet.result) {
+              const buff = await reqGet.result.value.image;
+              // blobをObjectURLへ変換
+              const objecturl = URL.createObjectURL(buff);
+              // imgタグに差し込む
+              const imageDiv = document.createElement('img');
+              imageDiv.setAttribute("src", objecturl);
+              imageDiv.style.display = "block";
+              document.getElementById('images').appendChild(imageDiv);
+              reqGet.result.continue();
+            }
+          }
+        };
+      }
+    </script>
+   </body>
+</html>
